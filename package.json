@@ -1,0 +1,75 @@
+{
+  "name": "@leonardo-tales/agent-control-plane",
+  "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "os": [
+    "linux"
+  ],
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "test": "node test/pilot.test.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "demo": "node src/demo.ts demo",
+    "manual": "node src/demo.ts manual",
+    "example:registration": "node examples/register-synthetic.ts",
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "@leonardo-tales/action-gateway": "0.2.0",
+    "@leonardo-tales/policy-engine": "0.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.3",
+    "typescript": "5.9.3"
+  },
+  "description": "A model-independent control layer for accountable AI agent actions on a trusted local Linux host.",
+  "license": "Apache-2.0 AND CC-BY-4.0",
+  "exports": {
+    ".": {
+      "types": "./dist/host.d.ts",
+      "import": "./dist/host.js"
+    },
+    "./catalog": {
+      "types": "./dist/catalog.d.ts",
+      "import": "./dist/catalog.js"
+    }
+  },
+  "files": [
+    "AGENTS.md",
+    "ARCHITECTURE.md",
+    "AUDIT_LOG.md",
+    "CONTRIBUTING.md",
+    "HUMAN_APPROVAL_GATE.md",
+    "MEMORY_POLICY.md",
+    "NOTICE.md",
+    "PERMISSIONS.md",
+    "PROJECT_BOUNDARY.md",
+    "PROVENANCE.md",
+    "SECURITY.md",
+    "VERIFICATION.md",
+    "tsconfig.json",
+    "tsconfig.build.json",
+    "src/catalog.ts",
+    "src/demo.ts",
+    "src/host.ts",
+    "src/store.ts",
+    "test/pilot.test.ts",
+    "examples/register-synthetic.ts",
+    "dist/catalog.js",
+    "dist/catalog.d.ts",
+    "dist/demo.js",
+    "dist/demo.d.ts",
+    "dist/host.js",
+    "dist/host.d.ts",
+    "dist/store.js",
+    "dist/store.d.ts",
+    "LEONARDO_TALES_CONSTITUTION.md",
+    "LICENSE",
+    "LICENSES/CC-BY-4.0.txt"
+  ]
+}
