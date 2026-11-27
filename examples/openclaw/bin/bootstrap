@@ -1,0 +1,60 @@
+#!/bin/bash -p
+set -euo pipefail
+umask 077
+export PATH=/usr/bin:/bin
+
+root=$(cd -- "$(/usr/bin/dirname -- "$0")/.." && pwd -P)
+cd -- "$root"
+mode=$(stat -c %a -- "$root")
+if [[ $(uname -s) != Linux || $(uname -m) != x86_64 || ! -O "$root" || $EUID -eq 0 ]] ||
+   (( (8#$mode & 022) != 0 )); then
+  printf '%s\n' 'Use an owner-controlled checkout on Linux x86-64 and run as a regular user.' >&2
+  exit 1
+fi
+for tool in curl tar xz sha256sum jq openssl; do
+  command -v "$tool" > /dev/null
+done
+for path in runtime profile workspace integration/mcp/node_modules; do
+  if [[ -e "$path" || -L "$path" ]]; then
+    printf 'Use a fresh example directory. Existing path: %s\n' "$path" >&2
+    exit 1
+  fi
+done
+
+mkdir -p runtime/{node,npm/bin,npm/lib,install-home,install-tmp}
+archive=$(mktemp "$root/runtime/install-tmp/node.XXXXXX")
+trap 'rm -f -- "$archive"' EXIT
+curl -q --fail --silent --show-error --location --proto '=https' --retry 2 \
+  https://nodejs.org/dist/v24.22.3/node-v24.22.3-linux-x64.tar.xz --output "$archive"
+printf '%s  %s\n' 4f2b175a6d53a5c617a80dba2676238a0688cef28c6da4eba35c7d844e66fcfb "$archive" | sha256sum --check
+tar -xJf "$archive" --strip-components=1 -C runtime/node
+node="$root/runtime/node/bin/node"
+npm="$root/runtime/node/bin/npm"
+
+clean_env() {
+  /usr/bin/env -i "HOME=$root/runtime/install-home" "TMPDIR=$root/runtime/install-tmp" \
+    "PATH=$root/runtime/node/bin:/usr/bin:/bin" LANG=C.UTF-8 "$@"
+}
+
+test "$(clean_env "$node" --version)" = v24.22.3
+test "$(clean_env "$npm" --version)" = 11.19.1
+
+cp -- setup/openclaw/package.json setup/openclaw/package-lock.json runtime/npm/lib/
+npm_ci() {
+  clean_env "$npm" ci --ignore-scripts --no-audit --no-fund \
+    --registry=https://registry.npmjs.org/ --cache="$root/runtime/npm-cache" "$@"
+}
+npm_ci --prefix "$root/runtime/npm/lib" --install-strategy=shallow
+npm_ci --prefix "$root/integration/mcp"
+ln -s ../lib/node_modules/openclaw/openclaw.mjs runtime/npm/bin/openclaw
+
+mkdir -p profile/{home,logs,state/agents/main/agent} workspace
+jq --arg root "$root" 'walk(if type=="string" and startswith("@ROOT@/") then $root + ltrimstr("@ROOT@") else . end)' \
+  config/openclaw.template.json > profile/openclaw.json
+openssl rand -hex 32 > profile/gateway-token
+./bin/openclaw-lab --version | grep -Fx 'OpenClaw 2026.11.10 (6ea542f)'
+./bin/openclaw-lab setup --baseline --skip-bootstrap --workspace "$root/workspace" --json > profile/setup.json
+./bin/openclaw-lab config validate --json | jq -e '.valid == true'
+jq -e '.tools.alsoAllow == [] and .tools.gatewayPolicy.allow == [] and
+  ([.mcp.servers[].enabled] == [false])' profile/openclaw.json
+clean_env "$node" integration/mcp/operator.mjs init "$root/profile/i2-mcp"

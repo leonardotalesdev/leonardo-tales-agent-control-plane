@@ -1,0 +1,174 @@
+{
+  "agents": {
+    "entries": {
+      "main": {
+        "name": "main",
+        "workspace": "@ROOT@/workspace",
+        "agentDir": "@ROOT@/profile/state/agents/main/agent",
+        "identity": {
+          "name": "main"
+        }
+      }
+    },
+    "defaults": {
+      "workspace": "@ROOT@/workspace",
+      "skipBootstrap": true,
+      "models": {
+        "openai/gpt-6.1-sol": {
+          "agentRuntime": {
+            "id": "openclaw"
+          },
+          "params": {
+            "fastMode": false
+          }
+        }
+      },
+      "modelPolicy": {
+        "allow": [
+          "openai/gpt-6.1-sol"
+        ]
+      },
+      "model": {
+        "primary": "openai/gpt-6.1-sol",
+        "fallbacks": []
+      }
+    }
+  },
+  "plugins": {
+    "enabled": true,
+    "allow": [
+      "openai",
+      "leonardo-tool-consent"
+    ],
+    "slots": {
+      "memory": "none"
+    },
+    "entries": {
+      "openai": {
+        "enabled": true
+      },
+      "codex": {
+        "enabled": false
+      },
+      "leonardo-tool-consent": {
+        "enabled": true,
+        "hooks": {
+          "allowPromptModification": false,
+          "allowConversationAccess": false
+        }
+      }
+    },
+    "load": {
+      "paths": [
+        "@ROOT@/integration/consent"
+      ]
+    }
+  },
+  "gateway": {
+    "mode": "local",
+    "port": 18791,
+    "bind": "loopback",
+    "auth": {
+      "mode": "token",
+      "allowTailscale": false
+    },
+    "tailscale": {
+      "mode": "off"
+    },
+    "controlUi": {
+      "enabled": false
+    },
+    "terminal": {
+      "enabled": false
+    }
+  },
+  "env": {
+    "shellEnv": {
+      "enabled": false
+    }
+  },
+  "discovery": {
+    "mdns": {
+      "mode": "off"
+    }
+  },
+  "browser": {
+    "enabled": false
+  },
+  "tools": {
+    "profile": "minimal",
+    "alsoAllow": [],
+    "deny": [
+      "session_status",
+      "gateway"
+    ],
+    "gatewayPolicy": {
+      "allow": []
+    },
+    "codeMode": {
+      "enabled": false
+    },
+    "elevated": {
+      "enabled": false
+    },
+    "exec": {
+      "security": "deny"
+    },
+    "fs": {
+      "workspaceOnly": true
+    },
+    "toolSearch": false,
+    "web": {
+      "search": {
+        "enabled": false
+      },
+      "fetch": {
+        "enabled": false
+      }
+    }
+  },
+  "channels": {},
+  "mcp": {
+    "servers": {
+      "leonardo": {
+        "enabled": false,
+        "command": "/usr/bin/env",
+        "args": [
+          "-i",
+          "PATH=/usr/bin:/bin",
+          "@ROOT@/runtime/node/bin/node",
+          "@ROOT@/integration/mcp/server.mjs",
+          "@ROOT@/profile/i2-mcp/adapter.json",
+          "openclaw-lab"
+        ],
+        "cwd": "@ROOT@/integration/mcp",
+        "codex": {
+          "defaultToolsApprovalMode": "prompt"
+        },
+        "toolFilter": {
+          "include": [
+            "synthetic_rows"
+          ]
+        }
+      }
+    }
+  },
+  "cron": {
+    "enabled": false,
+    "triggers": {
+      "enabled": false
+    }
+  },
+  "hooks": {
+    "enabled": false
+  },
+  "update": {
+    "checkOnStart": false
+  },
+  "telemetry": {
+    "enabled": false
+  },
+  "logging": {
+    "file": "@ROOT@/profile/logs/openclaw.log"
+  }
+}
