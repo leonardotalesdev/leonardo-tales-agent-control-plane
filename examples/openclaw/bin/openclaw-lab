@@ -1,0 +1,49 @@
+#!/bin/bash -p
+set -euo pipefail
+
+lab=$(cd -- "$(/usr/bin/dirname -- "$0")/.." && pwd -P)
+cd -- "$lab/workspace"
+
+lab_hash=$(/usr/bin/sha256sum <<< "$lab")
+scratch="/tmp/leonardo-tales-openclaw-lab-$UID-${lab_hash:0:16}"
+if ! /usr/bin/mkdir -m 700 -- "$scratch" 2>/dev/null; then
+  if [[ ! -d $scratch || -L $scratch || ! -O $scratch || $(/usr/bin/stat -c %a -- "$scratch") != 700 ]]; then
+    echo "The lab requires a private temporary directory at $scratch." >&2
+    exit 1
+  fi
+fi
+
+exec /usr/bin/env -i \
+  PATH="$lab/runtime/node/bin:/usr/bin:/bin" \
+  HOME="$lab/profile/home" \
+  XDG_CONFIG_HOME="$lab/profile/home/.config" \
+  XDG_DATA_HOME="$lab/profile/home/.local/share" \
+  XDG_CACHE_HOME="$lab/profile/home/.cache" \
+  TMPDIR="$scratch" \
+  NODE_COMPILE_CACHE="$lab/runtime/node-cache" \
+  LANG=C.UTF-8 \
+  SHELL=/bin/sh \
+  OPENCLAW_HOME="$lab/profile/home" \
+  OPENCLAW_PROFILE=leonardo-tales-lab \
+  OPENCLAW_STATE_DIR="$lab/profile/state" \
+  OPENCLAW_CONFIG_PATH="$lab/profile/openclaw.json" \
+  OPENCLAW_WORKSPACE_DIR="$lab/workspace" \
+  OPENCLAW_SKIP_CHANNELS=1 \
+  OPENCLAW_SKIP_CRON=1 \
+  OPENCLAW_DISABLE_BONJOUR=1 \
+  OPENCLAW_NO_AUTO_UPDATE=1 \
+  OPENCLAW_OFFLINE=1 \
+  OPENCLAW_EXEC_SHELL_SNAPSHOT=0 \
+  /bin/bash --noprofile --norc -euc '
+    umask 077
+    token_file=$1
+    shift
+    IFS= read -r OPENCLAW_GATEWAY_TOKEN < "$token_file"
+    if [[ ! $OPENCLAW_GATEWAY_TOKEN =~ ^[0-9a-f]{64}$ ]]; then
+      echo "The lab Gateway token file must contain one 32-byte hex token." >&2
+      exit 1
+    fi
+    export OPENCLAW_GATEWAY_TOKEN
+    exec "$@"
+  ' bash "$lab/profile/gateway-token" \
+  "$lab/runtime/node/bin/node" "$lab/runtime/npm/bin/openclaw" "$@"

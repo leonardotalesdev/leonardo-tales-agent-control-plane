@@ -1,0 +1,6 @@
+{
+  "name": "leonardo-tool-consent",
+  "private": true,
+  "type": "module",
+  "openclaw": { "extensions": ["./leonardo-tool-consent.mjs"] }
+}

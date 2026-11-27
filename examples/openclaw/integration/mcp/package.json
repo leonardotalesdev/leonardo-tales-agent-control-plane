@@ -1,0 +1,14 @@
+{
+  "name": "leonardo-tales-acp-mcp-lab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": "24.22.3" },
+  "dependencies": {
+    "@leonardo-tales/action-gateway": "0.2.0",
+    "@leonardo-tales/agent-control-plane": "0.1.0",
+    "@leonardo-tales/policy-engine": "0.3.0",
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "zod": "4.6.7"
+  }
+}

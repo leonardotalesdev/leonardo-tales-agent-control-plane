@@ -1,0 +1,7 @@
+{
+  "id": "leonardo-tool-consent",
+  "name": "Leonardo Lab Tool Consent",
+  "activation": { "onStartup": true },
+  "contracts": { "tools": ["leonardo__synthetic_rows"] },
+  "configSchema": { "type": "object", "additionalProperties": false }
+}
